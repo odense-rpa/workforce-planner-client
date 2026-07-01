@@ -88,7 +88,26 @@ class WorkforcePlannerClient:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    def handle_dialog(self, dialog, dialog_count):
+        dialog_count += 1
+
+        if dialog_count == 1:
+            # first confirm: always accept
+            print("First dialog accepted:", dialog.message)
+            dialog.accept()
+
+        elif dialog_count == 2:
+            # second dialog: accept but fail test
+            dialog.accept()
+            raise ValueError("Online ressourcer er tilknyttet. Kan ikke slette.")
+
+        else:
+            # anything beyond is also suspicious
+            dialog.accept()
+            raise ValueError(f"Ekstra uventet dialog #{dialog_count}: {dialog.message}")
+
     def slet_personressource(self, email: str) -> None:
+        dialog_count = 0
         if self._page is None:
             raise ValueError("Side kunne ikke åbnes.")
 
@@ -100,6 +119,7 @@ class WorkforcePlannerClient:
             email
         )
         self._page.locator(WorkforcePlannerSelectors.SEARCH_BUTTON).click()
+        self._page.wait_for_timeout(5000)
 
         if self._page.locator(
             WorkforcePlannerSelectors.EMPTY_GRIDVIEW_DIV
@@ -121,13 +141,9 @@ class WorkforcePlannerClient:
             raise ValueError(
                 f"Flere brugere fundet med email {email} under Person ressourcer"
             )
-
+        self._page.on("dialog", lambda dialog: self.handle_dialog(dialog, dialog_count))
         self._page.locator(WorkforcePlannerSelectors.DELETE_BUTTON).click()
-        self._page.keyboard.press("Enter")
-
-        # TODO: After confirming deletion, some Online offers may still be linked to the user. Right now it's UIA Spied in Blue Prism so i cannot tell the selector or context. If so, we need to either fire JS or find the click selector for OK button (Probably modal shit)
-        # TODO: If a popup appears and is clicked, then throw a ValueError
-        # TODO: Check table search result, if the user is still there throw a ValueError
+        
 
     def deaktiver_bruger(self, email: str) -> None:
         if self._page is None:
@@ -145,7 +161,7 @@ class WorkforcePlannerClient:
                 f"{WorkforcePlannerSelectors.USERS_RESULTS_TABLE} tbody tr"
             ).first.wait_for(state="visible", timeout=5000)
         except PlaywrightTimeoutError:
-            pass
+            raise ValueError("Bruger ikke fundet under Brugere")
 
         table = self._page.locator(WorkforcePlannerSelectors.USERS_RESULTS_TABLE)
         if table.count() == 0:
