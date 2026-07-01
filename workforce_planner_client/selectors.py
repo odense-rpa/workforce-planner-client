@@ -1,0 +1,12 @@
+class WorkforcePlannerSelectors:
+    LOGIN_PANEL_FIRST_SUCCESS_BUTTON = "div.login-panel button.button-success >> nth=0"
+    ODENSE_IDP_BUTTON = "div.idp[aria-label='Odense'] >> nth=0"
+    MAIN_MENU_BRAND_LINK = "nav.main-menu a.brand"
+    SEARCH_DEPARTMENTS_BUTTON = "#uiButtonSearchDepartments"
+    SEARCH_BUTTON = "button.search-button"
+    EMPTY_GRIDVIEW_DIV = "div.AspNet-GridView-Empty"
+    PERSONRESOURCE_RESULTS_TABLE = "table.PlannerTable"
+    DELETE_BUTTON = "button#uiButtonDelete"
+    USERS_SEARCH_INPUT = "div.input-field-container input >> nth=0"
+    USERS_RESULTS_TABLE = "table.p-datatable-table"
+    USERS_RESULT_ITEM_BUTTON = "button.button-link-no-padding"
