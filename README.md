@@ -1,21 +1,53 @@
-## How to use this template
+# workforce-planner-client
 
-The repository has been tagged as a template repository. This means you can create a new repository based on this code using the [GitHub instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template)
+Python-bibliotek der automatiserer brugeradministration i Workforce Planner via en Playwright-drevet Chromium-browser med Odense IDP-godkendelse.
 
+> Denne klient er ikke officielt støttet eller godkendt af leverandøren bag Workforce Planner. Brug på eget ansvar.
 
-### Alternative method: checkout the repository and remove git bindings
-Replace `<new-folder-name>` with your desired folder name:
-```sh
-git clone https://github.com/odense-rpa/process-template.git <new-folder-name>
+## Nuværende funktionalitet
 
-cd <new-folder-name>
+- **Slet personressource** (`slet_personressource`): Søger en bruger op via e-mail og sletter den tilknyttede personressource
+- **Deaktiver bruger** (`deaktiver_bruger`): Søger en bruger op i brugeradministrationen via e-mail, åbner brugerposten, fjerner fluebenet i "Aktiv" og gemmer
 
-rm -rf .git
-git init
-git add .
-git commit -m "Initial commit from process-template"
+## Installation
 
-git remote add origin <new-repo-url>
-git push -u origin main
+```bash
+uv add git+https://github.com/odense-rpa/workforce-planner-client
 ```
 
+Installer desuden Chromium-browseren:
+
+```bash
+uv run playwright install chromium
+```
+
+## Forudsætninger
+
+- Python ≥ 3.13
+- Adgang til Workforce Planner-instansen
+- Brugernavn og adgangskode til Odense IDP
+
+## Brug
+
+```python
+import asyncio
+from workforce_planner_client import WorkforcePlannerClient
+
+async def main():
+    async with WorkforcePlannerClient(
+        base_url="https://workforce.example.dk",
+        username="brugernavn",
+        password="adgangskode",
+    ) as client:
+        # Slet en personressource
+        await client.slet_personressource("medarbejder@kommune.dk")
+
+        # Deaktiver en bruger
+        await client.deaktiver_bruger("medarbejder@kommune.dk")
+
+asyncio.run(main())
+```
+
+## Licens
+
+MIT
