@@ -161,17 +161,17 @@ class WorkforcePlannerClient:
                 f"{WorkforcePlannerSelectors.USERS_RESULTS_TABLE} tbody tr"
             ).first.wait_for(state="visible", timeout=5000)
         except PlaywrightTimeoutError:
-            raise ValueError("Bruger ikke fundet under Brugere")
+            raise LookupError("Bruger ikke fundet under Brugere")
 
         table = self._page.locator(WorkforcePlannerSelectors.USERS_RESULTS_TABLE)
         if table.count() == 0:
-            raise ValueError("Bruger ikke fundet under Brugere")
+            raise LookupError("Bruger ikke fundet under Brugere")
 
         result_rows = table.locator("tbody tr")
         row_count = result_rows.count()
 
         if row_count == 0:
-            raise ValueError("Bruger ikke fundet under Brugere")
+            raise LookupError("Bruger ikke fundet under Brugere")
         if row_count > 1:
             raise ValueError(f"Flere brugere fundet med email {email} under Brugere")
 
