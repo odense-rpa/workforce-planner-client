@@ -107,7 +107,6 @@ class WorkforcePlannerClient:
             raise ValueError(f"Ekstra uventet dialog #{dialog_count}: {dialog.message}")
 
     def slet_personressource(self, email: str) -> None:
-        dialog_count = 0
         if self._page is None:
             raise ValueError("Side kunne ikke åbnes.")
 
@@ -141,8 +140,31 @@ class WorkforcePlannerClient:
             raise ValueError(
                 f"Flere brugere fundet med email {email} under Person ressourcer"
             )
-        self._page.on("dialog", lambda dialog: self.handle_dialog(dialog, dialog_count))
-        self._page.locator(WorkforcePlannerSelectors.DELETE_BUTTON).click()
+        dialog_messages: list[str] = []
+
+        def _handle_delete_dialog(dialog):
+            dialog_messages.append(dialog.message)
+            dialog.accept()
+
+        self._page.on("dialog", _handle_delete_dialog)
+        try:
+            self._page.locator(WorkforcePlannerSelectors.DELETE_BUTTON).click()
+
+            # Some flows trigger a second dialog after the postback/navigation.
+            try:
+                self._page.wait_for_load_state("domcontentloaded", timeout=4000)
+            except PlaywrightTimeoutError:
+                pass
+            self._page.wait_for_timeout(500)
+        finally:
+            self._page.remove_listener("dialog", _handle_delete_dialog)
+
+        if len(dialog_messages) >= 3:
+            raise ValueError(
+                f"Ekstra uventet dialog(er) ved sletning: {len(dialog_messages)}"
+            )
+        if len(dialog_messages) == 2:
+            raise ValueError("Online ressourcer er tilknyttet. Kan ikke slette.")
         
 
     def deaktiver_bruger(self, email: str) -> None:
